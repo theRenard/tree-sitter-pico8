@@ -40,7 +40,7 @@ const name_list = ($) => list_seq(field('name', $.identifier), ',');
 export default grammar({
   name: 'pico8',
 
-  extras: ($) => [$.comment, /[ \t\r\n]/],
+  extras: ($) => [$.comment, $.include_directive, /[ \t\r\n]/],
 
   supertypes: ($) => [$.statement, $.expression, $.declaration, $.variable, $.section],
 
@@ -55,10 +55,12 @@ export default grammar({
     // Cartridge structure
     // ----------------------------------------------------------------
 
+    // A full cart (header + sections), or a bare Lua chunk such as a file
+    // pulled in with `#include`.
     source_file: ($) =>
-      seq(
-        $.header,
-        repeat($.section)
+      choice(
+        seq($.header, repeat($.section)),
+        optional(alias($._block, $.lua_chunk))
       ),
 
     header: ($) =>
@@ -430,7 +432,13 @@ export default grammar({
       );
 
       const bin_digits = /[01]+/;
-      const bin_literal = seq(/0[bB]/, bin_digits);
+      const bin_literal = seq(
+        /0[bB]/,
+        choice(
+          seq(bin_digits, optional(seq('.', optional(bin_digits)))),
+          seq('.', bin_digits)
+        )
+      );
 
       return token(choice(hex_literal, bin_literal, decimal_literal));
     },
@@ -639,6 +647,9 @@ export default grammar({
     // Comments: Lua `--` line comments, Pico-8 `//` line comments,
     // and basic `--[[ ... ]]` block comments. Block form is matched as
     // a single token since `comment` is consumed as an `extras` rule.
+    // `#include path` (PICO-8 preprocessor directive), handled like a comment.
+    include_directive: (_) => token(prec(2, /#include[^\n]*/)),
+
     comment: (_) =>
       token(
         choice(

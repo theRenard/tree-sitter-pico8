@@ -1082,6 +1082,25 @@
     }
   },
   {
+    "type": "lua_chunk",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "return_statement",
+          "named": true
+        },
+        {
+          "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "lua_section",
     "named": true,
     "fields": {},
@@ -1389,10 +1408,14 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "header",
+          "named": true
+        },
+        {
+          "type": "lua_chunk",
           "named": true
         },
         {
@@ -1937,6 +1960,11 @@
   {
     "type": "in",
     "named": false
+  },
+  {
+    "type": "include_directive",
+    "named": true,
+    "extra": true
   },
   {
     "type": "local",
